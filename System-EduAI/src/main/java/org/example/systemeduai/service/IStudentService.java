@@ -7,4 +7,6 @@ public interface IStudentService {
     void save(Student student);
 
     boolean existsByStudentPhone(String phone);
+
+    Student findByAccountId(Integer accountId);
 }

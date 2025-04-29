@@ -27,17 +27,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.time.LocalDate;
 import java.time.Period;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -175,5 +170,59 @@ public class SecurityController {
             e.printStackTrace();
         }
         return ResponseEntity.badRequest().build();
+    }
+
+    @PutMapping("/forgot-password/{username}")
+    public ResponseEntity<?> forgotPassword(@PathVariable String username) {
+        Account account = accountService.findByUsername(username);
+        Map<String, String> listError = new HashMap<>();
+        if (account == null) {
+            listError.put("nonExistUsername", "Tên đăng nhập không tồn tại, vui lòng chọn tên đăng nhập khác!");
+            return ResponseEntity.badRequest().body(listError);
+        }
+
+        Student student = studentService.findByAccountId(account.getAccountId());
+        if (student == null || student.getStudentEmail() == null) {
+            listError.put("noEmail", "Không tìm thấy email liên kết với tài khoản này!");
+            return ResponseEntity.badRequest().body(listError);
+        }
+
+        String email = student.getStudentEmail();
+        String code = accountService.generateCode();
+        accountService.storeOtp(username, code);
+        accountService.sendEmailOTP(email, code);
+        return ResponseEntity.ok(Map.of("message", "Mã OTP đã được gửi đến email của bạn."));
+    }
+    @PostMapping("/reset-password/{username}")
+    public ResponseEntity<?> resetPassword(@PathVariable String username,
+                                           @RequestBody Map<String, String> request) {
+        String otp = request.get("otp");
+        String newPassword = request.get("newPassword");
+        Map<String, String> listError = new HashMap<>();
+
+        if (otp == null || otp.isEmpty()) {
+            listError.put("invalidOtp", "Vui lòng cung cấp mã OTP!");
+        }
+        if (newPassword == null || newPassword.length() < 8) {
+            listError.put("invalidPassword", "Mật khẩu mới phải có ít nhất 8 ký tự!");
+        }
+        if (!listError.isEmpty()) {
+            return ResponseEntity.badRequest().body(listError);
+        }
+
+        if (!accountService.verifyOtp(username, otp)) {
+            listError.put("invalidOtp", "Mã OTP không hợp lệ hoặc đã hết hạn!");
+            return ResponseEntity.badRequest().body(listError);
+        }
+
+        Account account = accountService.findByUsername(username);
+        if (account == null) {
+            listError.put("nonExistUsername", "Tên đăng nhập không tồn tại!");
+            return ResponseEntity.badRequest().body(listError);
+        }
+
+        accountService.changePasswordByForgot(newPassword, account);
+        accountService.clearOtp(username);
+        return ResponseEntity.ok(Map.of("message", "Đặt lại mật khẩu thành công!"));
     }
 }

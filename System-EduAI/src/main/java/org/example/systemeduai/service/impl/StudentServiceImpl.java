@@ -21,4 +21,9 @@ public class StudentServiceImpl implements IStudentService {
     public boolean existsByStudentPhone(String phone) {
         return studentRepository.existsByStudentPhone(phone);
     }
+
+    @Override
+    public Student findByAccountId(Integer accountId) {
+        return studentRepository.findByAccountId(accountId);
+    }
 }

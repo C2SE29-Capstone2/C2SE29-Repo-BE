@@ -8,4 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 @Transactional
 public interface IStudentRepository extends JpaRepository<Student, Integer> {
+
+    boolean existsByStudentPhone(String phone);
 }

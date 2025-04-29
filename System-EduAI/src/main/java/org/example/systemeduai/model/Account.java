@@ -19,6 +19,7 @@ public class Account {
     private String username;
     private String encryptPassword;
     private String email;
+    private Boolean isEnable;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "account_roles",

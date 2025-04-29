@@ -17,7 +17,6 @@ public class Parent {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer parentId;
     private String parentName;
-    private String parentPhone;
     private Boolean parentGender;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private Date dateOfBirth;

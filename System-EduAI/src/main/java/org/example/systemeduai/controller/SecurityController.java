@@ -1,17 +1,24 @@
 package org.example.systemeduai.controller;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.jackson2.JacksonFactory;
 import org.example.systemeduai.dto.request.LoginRequest;
 import org.example.systemeduai.dto.request.SignupRequest;
 import org.example.systemeduai.dto.response.JwtResponse;
 import org.example.systemeduai.dto.response.MessageResponse;
+import org.example.systemeduai.dto.response.SocialResponse;
 import org.example.systemeduai.model.Account;
 import org.example.systemeduai.model.Role;
 import org.example.systemeduai.model.Student;
+import org.example.systemeduai.security.jwt.JwtTokenProvider;
 import org.example.systemeduai.security.jwt.JwtUtility;
 import org.example.systemeduai.security.userprinciple.UserPrinciple;
 import org.example.systemeduai.service.IAccountService;
 import org.example.systemeduai.service.IStudentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -28,6 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -35,11 +43,18 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/v1/public")
 public class SecurityController {
+
+    @Value("${google.clientId}")
+    String googleClientId;
+
     @Autowired
     private AuthenticationManager authenticationManager;
 
     @Autowired
     private JwtUtility jwtUtility;
+
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -122,5 +137,43 @@ public class SecurityController {
         studentService.save(student);
 
         return new ResponseEntity<>(new MessageResponse("Account registration successful!"), HttpStatus.OK);
+    }
+
+    @PostMapping("/oauth/google")
+    public ResponseEntity<?> loginGoogle(@RequestBody SocialResponse jwtResponseSocial) {
+        final NetHttpTransport netHttpTransport = new NetHttpTransport();
+        final JacksonFactory jacksonFactory = JacksonFactory.getDefaultInstance();
+        GoogleIdTokenVerifier.Builder builder =
+                new GoogleIdTokenVerifier.Builder(netHttpTransport, jacksonFactory)
+                        .setAudience(Collections.singletonList(googleClientId));
+
+        try {
+            final GoogleIdToken googleIdToken = GoogleIdToken.parse(builder.getJsonFactory(), jwtResponseSocial.getToken());
+            final GoogleIdToken.Payload payload = googleIdToken.getPayload();
+
+            Account existingAccount = accountService.findByEmail(payload.getEmail());
+
+            if (existingAccount == null) {
+                Account newAccount = new Account();
+                newAccount.setEmail(payload.getEmail());
+                newAccount.setUsername(payload.getEmail());
+                newAccount.setIsEnable(true);
+                newAccount.setRoles(Collections.singleton(new Role(3, "ROLE_STUDENT")));
+
+                newAccount = accountService.save(newAccount);
+
+                Student newStudent = new Student();
+                newStudent.setStudentName(payload.get("name").toString());
+                newStudent.setStudentEmail(payload.getEmail());
+                newStudent.setAccount(newAccount);
+                studentService.save(newStudent);
+            }
+            String jwt = jwtTokenProvider.generateToken(payload.getEmail());
+            return ResponseEntity.ok(new JwtResponse(jwt, payload.getEmail()));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return ResponseEntity.badRequest().build();
     }
 }

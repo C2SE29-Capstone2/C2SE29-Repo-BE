@@ -160,7 +160,11 @@ public class SecurityController {
                 Student newStudent = new Student();
                 newStudent.setStudentName(payload.get("name").toString());
                 newStudent.setStudentEmail(payload.getEmail());
-                newStudent.setAccount(newAccount);
+
+                String pictureUrl = payload.get("picture") != null ? payload.get("picture").toString() : null;
+                newStudent.setProfileImage(pictureUrl);
+
+                newStudent .setAccount(newAccount);
                 studentService.save(newStudent);
             }
             String jwt = jwtTokenProvider.generateToken(payload.getEmail());

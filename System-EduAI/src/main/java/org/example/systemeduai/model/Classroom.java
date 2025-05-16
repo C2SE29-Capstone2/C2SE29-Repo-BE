@@ -23,12 +23,6 @@ public class Classroom {
     private ClassroomType classroomType;
 
     @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "classroom_teachers",
-            joinColumns = @JoinColumn(name = "classroom_id"),
-            inverseJoinColumns = @JoinColumn(name = "teacher_id"))
-    private Set<Teacher> teachers = new LinkedHashSet<>();
-
-    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "classroom_learning_schedules",
             joinColumns = @JoinColumn(name = "classroom_id"),
             inverseJoinColumns = @JoinColumn(name = "learning_schedule_id"))

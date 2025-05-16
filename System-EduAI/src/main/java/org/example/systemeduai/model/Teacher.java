@@ -36,8 +36,4 @@ public class Teacher {
     @JsonBackReference
     @ManyToMany(mappedBy = "teachers")
     private Set<ContactBook> contactBooks = new LinkedHashSet<>();
-
-    @JsonBackReference
-    @ManyToMany(mappedBy = "teachers")
-    private Set<Classroom> classrooms = new LinkedHashSet<>();
 }

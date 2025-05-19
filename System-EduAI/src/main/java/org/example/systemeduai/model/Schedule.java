@@ -22,7 +22,6 @@ public class Schedule {
     @JoinColumn(name = "classroom_id")
     private Classroom classroom;
 
-
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "teacher_id")
     private Teacher teacher;

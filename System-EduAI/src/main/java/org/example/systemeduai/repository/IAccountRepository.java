@@ -8,17 +8,15 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 @Transactional
 public interface IAccountRepository extends JpaRepository<Account, Integer> {
-
-    @Query(value = "select account_id, username, encrypt_password, email, is_enable " +
-            "from account " +
-            "where username = :username and is_enable = true", nativeQuery = true)
-    Optional<Account> getAccountByUsername(@Param("username") String username);
-
+    Optional<Account> findByUsername(String username);
+    @Query(value = "SELECT * FROM account WHERE username LIKE %:username%", nativeQuery = true)
+    List<Account> findByUsernameLike(@Param("username") String username);
     Boolean existsByUsername(String username);
 
     Boolean existsByEmail(String email);

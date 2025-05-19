@@ -2,6 +2,8 @@ package org.example.systemeduai.repository;
 
 import org.example.systemeduai.dto.student.StudentUserDetailDto;
 import org.example.systemeduai.model.Student;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,6 +16,9 @@ import java.util.Optional;
 @Repository
 @Transactional
 public interface IStudentRepository extends JpaRepository<Student, Integer> {
+    Page<Student> findByClassroomClassroomId(Integer classroomId, Pageable pageable);
+
+    long countByClassroomClassroomId(Integer classroomId);
 
     boolean existsByStudentPhone(String phone);
 

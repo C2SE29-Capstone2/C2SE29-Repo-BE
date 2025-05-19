@@ -1,5 +1,6 @@
 package org.example.systemeduai.model;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -10,6 +11,7 @@ import java.util.Set;
 
 @Setter
 @Getter
+@Builder
 @RequiredArgsConstructor
 @Entity
 public class Account {

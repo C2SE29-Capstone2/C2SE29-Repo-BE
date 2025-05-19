@@ -1,16 +1,22 @@
 package org.example.systemeduai.service.impl;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.example.systemeduai.dto.request.CreateStudentRequest;
+import org.example.systemeduai.dto.request.UpdateStudentRequest;
+import org.example.systemeduai.dto.response.PageResponse;
+import org.example.systemeduai.dto.response.StudentResponse;
 import org.example.systemeduai.dto.student.StudentMeasurementUpdateDto;
 import org.example.systemeduai.dto.student.StudentUpdateDto;
 import org.example.systemeduai.dto.student.StudentUserDetailDto;
-import org.example.systemeduai.model.ContactBook;
-import org.example.systemeduai.model.Student;
-import org.example.systemeduai.repository.IContactBookRepository;
-import org.example.systemeduai.repository.IStudentRepository;
+import org.example.systemeduai.exception.ResourceNotFoundException;
+import org.example.systemeduai.model.*;
+import org.example.systemeduai.repository.*;
 import org.example.systemeduai.service.IStudentService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.Tuple;
@@ -19,15 +25,99 @@ import java.time.Period;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class StudentServiceImpl implements IStudentService {
+    private final IStudentRepository studentRepository;
+    private final IClassroomRepository classroomRepository;
+    private final IContactBookRepository contactBookRepository;
+    private final IHealthRecordRepository healthRecordRepository;
+    private final IAccountRepository accountRepository;
+    private final IParentRepository parentRepository;
 
-    private static final Logger logger = LoggerFactory.getLogger(StudentServiceImpl.class);
+    @Override
+    public StudentResponse getStudentById(Integer studentId) {
+        return studentRepository.findById(studentId)
+                .map(this::mapStudentToResponse)
+                .orElseThrow(() -> new ResourceNotFoundException("Student", "id", studentId));
+    }
 
-    @Autowired
-    private IStudentRepository studentRepository;
+    @Override
+    public PageResponse<StudentResponse> getStudents(int page, int size, String sortBy, String sortDir) {
+        Sort.Direction dir = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Pageable pageable = PageRequest.of(page, size, dir, sortBy);
+        Page<Student> students = studentRepository.findAll(pageable);
+        return mapStudentPageToResponse(students);
+    }
 
-    @Autowired
-    private IContactBookRepository contactBookRepository;
+    @Override
+    public PageResponse<StudentResponse> getStudentsByClassroomId(Integer classroomId, int page, int size, String sortBy, String sortDir) {
+        Sort.Direction dir = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Pageable pageable = PageRequest.of(page, size, dir, sortBy);
+        Page<Student> students = studentRepository.findByClassroomClassroomId(classroomId, pageable);
+        return mapStudentPageToResponse(students);
+    }
+
+    @Override
+    public void createStudent(CreateStudentRequest request) {
+        Account account = new Account();
+
+        log.info("Creating new student with name: {}", request.getStudentName());
+        Student student = new Student();
+        student.setStudentName(request.getStudentName());
+        student.setStudentGender(request.getStudentGender());
+        student.setStudentEmail(request.getStudentEmail());
+        student.setStudentPhone(request.getStudentPhone());
+        student.setDateOfBirth(request.getDateOfBirth());
+        student.setAge(request.getAge());
+        student.setStudentAddress(request.getStudentAddress());
+        student.setProfileImage(request.getProfileImage());
+        student.setHealthStatus(request.getHealthStatus());
+        student.setHobby(request.getHobby());
+
+        save(student);
+        log.info("Successfully created new student with ID: {}", student.getStudentId());
+    }
+
+    @Override
+    public void updateStudent(UpdateStudentRequest request, Integer studentId) {
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Student", "id", studentId));
+        log.info("Updating student with ID: {}", studentId);
+        student.setStudentName(request.getStudentName());
+        student.setStudentEmail(request.getStudentEmail());
+        student.setStudentPhone(request.getStudentPhone());
+        student.setStudentGender(request.getStudentGender());
+        student.setDateOfBirth(request.getDateOfBirth());
+        student.setAge(request.getAge());
+        student.setStudentAddress(request.getStudentAddress());
+        student.setProfileImage(request.getProfileImage());
+        student.setHealthStatus(request.getHealthStatus());
+        student.setHobby(request.getHobby());
+        Classroom classroom = request.getClassroomId() == null ? null :
+                classroomRepository.findById(request.getClassroomId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Classroom", "id", request.getClassroomId()));
+        student.setClassroom(classroom);
+        studentRepository.save(student);
+        log.info("Successfully updated student with ID: {}", studentId);
+    }
+
+    @Override
+    public void deleteStudent(Integer studentId) {
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Student", "id", studentId));
+        Parent parent = parentRepository.findByStudentStudentId(studentId).orElse(null);
+        if (parent != null) {
+            parent.setStudent(null);
+            parentRepository.save(parent);
+        }
+        Account account = student.getAccount();
+        accountRepository.deleteById(account.getAccountId());
+        healthRecordRepository.deleteByStudentStudentId(studentId);
+        contactBookRepository.deleteByStudentStudentId(studentId);
+        studentRepository.deleteById(studentId);
+        log.info("Successfully deleted student with ID: {}", studentId);
+    }
 
     @Override
     public void save(Student student) {
@@ -46,23 +136,23 @@ public class StudentServiceImpl implements IStudentService {
 
     @Override
     public StudentUserDetailDto findUserDetailByUsername(String username) {
-        logger.info("Fetching details for username: {}", username);
+        log.info("Fetching details for username: {}", username);
         Tuple tuple = studentRepository.findUserDetailByUsername(username).orElse(null);
         if (tuple == null) {
-            logger.warn("No student found for username: {}", username);
+            log.warn("No student found for username: {}", username);
             return null;
         }
-        logger.info("Successfully fetched details for username: {}", username);
+        log.info("Successfully fetched details for username: {}", username);
         return StudentUserDetailDto.TupleToStudentDto(tuple);
     }
 
     @Override
     public StudentUserDetailDto updateStudentDetails(String username, StudentUpdateDto studentUpdateDto) {
-        logger.info("Updating student details for username: {}", username);
+        log.info("Updating student details for username: {}", username);
 
         Tuple tuple = studentRepository.findUserDetailByUsername(username).orElse(null);
         if (tuple == null) {
-            logger.warn("No student found for username: {}", username);
+            log.warn("No student found for username: {}", username);
             return null;
         }
 
@@ -72,13 +162,13 @@ public class StudentServiceImpl implements IStudentService {
         String accountEmail = tuple.get("email", String.class);
 
         if (studentId == null) {
-            logger.warn("Student ID is null for username: {}", username);
+            log.warn("Student ID is null for username: {}", username);
             return null;
         }
 
         Optional<Student> studentOptional = studentRepository.findById(studentId);
         if (studentOptional.isEmpty()) {
-            logger.warn("Student with ID {} not found in the database", studentId);
+            log.warn("Student with ID {} not found in the database", studentId);
             return null;
         }
 
@@ -98,7 +188,7 @@ public class StudentServiceImpl implements IStudentService {
         student.setHobby(studentUpdateDto.getHobby());
 
         studentRepository.save(student);
-        logger.info("Successfully updated student details for username: {}", username);
+        log.info("Successfully updated student details for username: {}", username);
 
         return new StudentUserDetailDto(
                 student.getStudentId(),
@@ -119,11 +209,11 @@ public class StudentServiceImpl implements IStudentService {
 
     @Override
     public StudentUserDetailDto updateStudentMeasurements(String username, StudentMeasurementUpdateDto measurementUpdateDto) {
-        logger.info("Updating student measurements for username: {}", username);
+        log.info("Updating student measurements for username: {}", username);
 
         Tuple tuple = studentRepository.findUserDetailByUsername(username).orElse(null);
         if (tuple == null) {
-            logger.warn("No student found for username: {}", username);
+            log.warn("No student found for username: {}", username);
             return null;
         }
 
@@ -131,13 +221,13 @@ public class StudentServiceImpl implements IStudentService {
         String accountEmail = tuple.get("email", String.class);
 
         if (studentId == null) {
-            logger.warn("Student ID is null for username: {}", username);
+            log.warn("Student ID is null for username: {}", username);
             return null;
         }
 
         Optional<Student> studentOptional = studentRepository.findById(studentId);
         if (studentOptional.isEmpty()) {
-            logger.warn("Student with ID {} not found in the database", studentId);
+            log.warn("Student with ID {} not found in the database", studentId);
             return null;
         }
 
@@ -146,7 +236,7 @@ public class StudentServiceImpl implements IStudentService {
         ContactBook contactBook = getContactBook(measurementUpdateDto, contactBookOptional, student);
 
         contactBookRepository.save(contactBook);
-        logger.info("Successfully updated student measurements for username: {}", username);
+        log.info("Successfully updated student measurements for username: {}", username);
 
         return new StudentUserDetailDto(
                 student.getStudentId(),
@@ -183,5 +273,37 @@ public class StudentServiceImpl implements IStudentService {
             contactBook.setStudent(student);
         }
         return contactBook;
+    }
+
+    private PageResponse<StudentResponse> mapStudentPageToResponse(Page<Student> studentPage) {
+        PageResponse<StudentResponse> pageResponse = new PageResponse<>();
+        pageResponse.setContent(studentPage.getContent().stream()
+                .map(this::mapStudentToResponse)
+                .toList());
+        pageResponse.setPageNumber(studentPage.getNumber());
+        pageResponse.setPageSize(studentPage.getSize());
+        pageResponse.setTotalElements(studentPage.getTotalElements());
+        pageResponse.setTotalPages(studentPage.getTotalPages());
+        pageResponse.setFirstPage(studentPage.isFirst());
+        pageResponse.setLastPage(studentPage.isLast());
+        return pageResponse;
+    }
+
+    private StudentResponse mapStudentToResponse(Student student) {
+        return StudentResponse.builder()
+                .studentId(student.getStudentId())
+                .studentName(student.getStudentName())
+                .studentGender(student.getStudentGender())
+                .studentEmail(student.getStudentEmail())
+                .studentPhone(student.getStudentPhone())
+                .dateOfBirth(student.getDateOfBirth())
+                .age(student.getAge())
+                .studentAddress(student.getStudentAddress())
+                .profileImage(student.getProfileImage())
+                .healthStatus(student.getHealthStatus())
+                .hobby(student.getHobby())
+                .accountId(student.getAccount().getAccountId())
+                .classroomId(student.getClassroom() != null ? student.getClassroom().getClassroomId() : null)
+                .build();
     }
 }

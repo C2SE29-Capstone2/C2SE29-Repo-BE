@@ -2,6 +2,7 @@ package org.example.systemeduai.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -13,6 +14,7 @@ import java.util.Set;
 
 @Setter
 @Getter
+@Builder
 @RequiredArgsConstructor
 @Entity
 public class Teacher {

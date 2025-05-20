@@ -1,9 +1,6 @@
 package org.example.systemeduai.model;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.*;
 import java.util.LinkedHashSet;
@@ -12,7 +9,8 @@ import java.util.Set;
 @Setter
 @Getter
 @Builder
-@RequiredArgsConstructor
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 public class Account {
     @Id

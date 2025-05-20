@@ -13,7 +13,7 @@ public interface IStudentService {
     StudentResponse getStudentById(Integer studentId);
     PageResponse<StudentResponse> getStudents(int page, int size, String sortBy, String sortDir);
     PageResponse<StudentResponse> getStudentsByClassroomId(Integer classroomId, int page, int size, String sortBy, String sortDir);
-    void createStudent(CreateStudentRequest request);
+//    void createStudent(CreateStudentRequest request);
     void updateStudent(UpdateStudentRequest request, Integer studentId);
     void deleteStudent(Integer studentId);
     void save(Student student);

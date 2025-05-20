@@ -54,12 +54,12 @@ public class StudentController {
     }
 
 
-    @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> createStudent(@Valid @RequestBody CreateStudentRequest request) {
-        studentService.createStudent(request);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
-    }
+//    @PostMapping
+//    @PreAuthorize("hasRole('ADMIN')")
+//    public ResponseEntity<Void> createStudent(@Valid @RequestBody CreateStudentRequest request) {
+//        studentService.createStudent(request);
+//        return ResponseEntity.status(HttpStatus.CREATED).build();
+//    }
 
     @PutMapping("/{studentId}")
     @PreAuthorize("hasRole('ADMIN')")

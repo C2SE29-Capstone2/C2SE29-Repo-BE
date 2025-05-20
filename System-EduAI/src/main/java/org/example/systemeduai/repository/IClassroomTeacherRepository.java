@@ -11,6 +11,8 @@ import java.util.List;
 @Repository
 @Transactional
 public interface IClassroomTeacherRepository extends JpaRepository<ClassroomTeacher, Integer> {
+    List<ClassroomTeacher> findByClassroomClassroomId(Integer classroomId);
+    List<ClassroomTeacher> findByTeacherTeacherId(Integer teacherId);
     @Modifying
     @Transactional
     void deleteByTeacherTeacherId(Integer teacherId);

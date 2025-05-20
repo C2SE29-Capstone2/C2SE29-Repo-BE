@@ -3,7 +3,7 @@ package org.example.systemeduai.model;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import org.example.systemeduai.model.enums.MealTime;
+import org.example.systemeduai.enums.MealTime;
 
 import javax.persistence.*;
 

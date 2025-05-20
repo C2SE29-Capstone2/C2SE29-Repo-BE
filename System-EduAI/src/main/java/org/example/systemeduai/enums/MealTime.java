@@ -1,4 +1,4 @@
-package org.example.systemeduai.model.enums;
+package org.example.systemeduai.enums;
 
 public enum MealTime {
     BREAKFAST,

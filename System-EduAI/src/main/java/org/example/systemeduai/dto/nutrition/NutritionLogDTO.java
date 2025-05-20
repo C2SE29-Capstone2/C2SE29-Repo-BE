@@ -3,7 +3,7 @@ package org.example.systemeduai.dto.nutrition;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.example.systemeduai.model.enums.MealTime;
+import org.example.systemeduai.enums.MealTime;
 
 import java.time.LocalDateTime;
 

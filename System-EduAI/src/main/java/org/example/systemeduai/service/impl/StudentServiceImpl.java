@@ -59,27 +59,6 @@ public class StudentServiceImpl implements IStudentService {
     }
 
     @Override
-    public void createStudent(CreateStudentRequest request) {
-        Account account = new Account();
-
-        log.info("Creating new student with name: {}", request.getStudentName());
-        Student student = new Student();
-        student.setStudentName(request.getStudentName());
-        student.setStudentGender(request.getStudentGender());
-        student.setStudentEmail(request.getStudentEmail());
-        student.setStudentPhone(request.getStudentPhone());
-        student.setDateOfBirth(request.getDateOfBirth());
-        student.setAge(request.getAge());
-        student.setStudentAddress(request.getStudentAddress());
-        student.setProfileImage(request.getProfileImage());
-        student.setHealthStatus(request.getHealthStatus());
-        student.setHobby(request.getHobby());
-
-        save(student);
-        log.info("Successfully created new student with ID: {}", student.getStudentId());
-    }
-
-    @Override
     public void updateStudent(UpdateStudentRequest request, Integer studentId) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Student", "id", studentId));

@@ -18,7 +18,7 @@ public class Camera {
     private String ipAddress;
     private Boolean cameraStatus;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "classroom_id")
     private Classroom classroom;
 }

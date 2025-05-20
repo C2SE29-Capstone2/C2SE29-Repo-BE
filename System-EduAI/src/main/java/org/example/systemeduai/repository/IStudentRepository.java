@@ -1,10 +1,10 @@
 package org.example.systemeduai.repository;
 
-import org.example.systemeduai.dto.student.StudentUserDetailDto;
 import org.example.systemeduai.model.Student;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -16,6 +16,12 @@ import java.util.Optional;
 @Repository
 @Transactional
 public interface IStudentRepository extends JpaRepository<Student, Integer> {
+    @Query("SELECT s FROM Student s")
+    Page<Student> findAllStudents(Pageable pageable);
+    @Modifying
+    @Query("UPDATE Student s SET s.classroom = NULL WHERE s.classroom.classroomId = :classroomId")
+    void removeStudentFromClassroomByClassroomId(Integer classroomId);
+    @Query("SELECT s FROM Student s WHERE s.classroom.classroomId = :classroomId")
     Page<Student> findByClassroomClassroomId(Integer classroomId, Pageable pageable);
 
     long countByClassroomClassroomId(Integer classroomId);

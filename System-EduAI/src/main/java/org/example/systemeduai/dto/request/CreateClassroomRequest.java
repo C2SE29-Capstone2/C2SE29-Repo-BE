@@ -3,6 +3,7 @@ package org.example.systemeduai.dto.request;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.example.systemeduai.dto.internal.CreateClassroomTeacherInfo;
 
 import java.util.List;
 
@@ -12,6 +13,5 @@ import java.util.List;
 public class CreateClassroomRequest {
     private String classroomName;
     private String classroomType;
-    private List<Integer> teacherId;
-    private List<String> roles;
+    private List<CreateClassroomTeacherInfo> teacherInfoList;
 }

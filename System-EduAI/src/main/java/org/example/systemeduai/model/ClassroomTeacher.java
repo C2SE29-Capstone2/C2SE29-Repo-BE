@@ -1,14 +1,14 @@
 package org.example.systemeduai.model;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.*;
 
 @Setter
 @Getter
-@RequiredArgsConstructor
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 @Entity
 @Table(name = "classroom_teachers")
 public class ClassroomTeacher {
@@ -17,11 +17,11 @@ public class ClassroomTeacher {
     private Integer id;
     private String role;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "classroom_id")
     private Classroom classroom;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "teacher_id")
     private Teacher teacher;
 }

@@ -18,9 +18,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.text.Normalizer;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -33,6 +35,7 @@ public class TeacherServiceImpl implements ITeacherService {
     private final IAccountRepository accountRepository;
     private final BCryptPasswordEncoder encoder;
     private final IRoleRepository roleRepository;
+
     @Override
     public TeacherResponse getTeacherById(Integer teacherId) {
         return mapToResponse(teacherRepository.findById(teacherId).orElseThrow(
@@ -44,11 +47,12 @@ public class TeacherServiceImpl implements ITeacherService {
     public PageResponse<TeacherResponse> getTeachers(int page, int size, String sortBy, String sortDir) {
         Sort.Direction direction = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.Direction.ASC : Sort.Direction.DESC;
         Pageable pageable = PageRequest.of(page, size, direction, sortBy);
-        Page<Teacher> teacherPage = teacherRepository.findAll(pageable);
+        Page<Teacher> teacherPage = teacherRepository.findAllTeachers(pageable);
         return mapToPageResponse(teacherPage);
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void createTeacher(CreateTeacherRequest request) {
         log.info("Creating new teacher with name: {}", request.getTeacherName());
         Teacher teacher = Teacher.builder()
@@ -67,19 +71,17 @@ public class TeacherServiceImpl implements ITeacherService {
         if (existingAccounts.size() > 0) {
             normalizedName += existingAccounts.size();
         }
-        String uuid = UUID.randomUUID().toString();
-        // TODO: Implement strategy to generate password and notice to teacher
-        Account account = Account.builder()
-                .username(normalizedName)
-                .encryptPassword(encoder.encode(uuid))
-                .email(request.getTeacherEmail())
-                .isEnable(true)
-                .build();
         Role roleTeacher = roleRepository.findByRoleName("ROLE_TEACHER").orElse(
                 Role.builder()
                         .roleName("ROLE_TEACHER")
                         .build());
-        account.getRoles().add(roleTeacher);
+        Account account = Account.builder()
+                .username(normalizedName)
+                .encryptPassword("123456")
+                .email(request.getTeacherEmail())
+                .isEnable(true)
+                .roles(Set.of(roleTeacher))
+                .build();
         accountRepository.save(account);
         teacher.setAccount(account);
         teacherRepository.save(teacher);

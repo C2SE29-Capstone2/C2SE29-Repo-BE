@@ -18,6 +18,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.Tuple;
 import java.time.LocalDate;
@@ -46,7 +47,7 @@ public class StudentServiceImpl implements IStudentService {
     public PageResponse<StudentResponse> getStudents(int page, int size, String sortBy, String sortDir) {
         Sort.Direction dir = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.Direction.ASC : Sort.Direction.DESC;
         Pageable pageable = PageRequest.of(page, size, dir, sortBy);
-        Page<Student> students = studentRepository.findAll(pageable);
+        Page<Student> students = studentRepository.findAllStudents(pageable);
         return mapStudentPageToResponse(students);
     }
 
@@ -82,6 +83,7 @@ public class StudentServiceImpl implements IStudentService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void deleteStudent(Integer studentId) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Student", "id", studentId));
@@ -94,7 +96,6 @@ public class StudentServiceImpl implements IStudentService {
         accountRepository.deleteById(account.getAccountId());
         healthRecordRepository.deleteByStudentStudentId(studentId);
         contactBookRepository.deleteByStudentStudentId(studentId);
-        studentRepository.deleteById(studentId);
         log.info("Successfully deleted student with ID: {}", studentId);
     }
 

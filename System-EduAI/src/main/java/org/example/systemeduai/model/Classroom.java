@@ -1,8 +1,6 @@
 package org.example.systemeduai.model;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.example.systemeduai.enums.ClassroomType;
 
 import javax.persistence.*;
@@ -12,7 +10,9 @@ import java.util.Set;
 
 @Setter
 @Getter
-@RequiredArgsConstructor
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 @Entity
 public class Classroom {
     @Id

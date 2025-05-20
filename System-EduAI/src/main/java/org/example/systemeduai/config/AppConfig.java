@@ -19,8 +19,8 @@ public class AppConfig implements ApplicationRunner {
         if (roleRepository.count() == 0) {
             roleRepository.saveAllAndFlush(List.of(
                     new Role(1, "ROLE_ADMIN"),
-                    new Role(2, "ROLE_STUDENT"),
-                    new Role(3, "ROLE_TEACHER")
+                    new Role(2, "ROLE_TEACHER"),
+                    new Role(3, "ROLE_STUDENT")
             ));
         }
     }

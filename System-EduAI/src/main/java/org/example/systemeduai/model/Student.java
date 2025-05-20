@@ -32,7 +32,7 @@ public class Student {
     @JoinColumn(name = "account_id")
     private Account account;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "classroom_id")
     private Classroom classroom;
 

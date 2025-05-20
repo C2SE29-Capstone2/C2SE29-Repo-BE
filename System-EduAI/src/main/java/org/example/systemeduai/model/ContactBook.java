@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -33,5 +34,5 @@ public class ContactBook {
     @JoinTable(name = "contact_book_teachers",
             joinColumns = @JoinColumn(name = "contact_book_id"),
             inverseJoinColumns = @JoinColumn(name = "teacher_id"))
-    private Set<Teacher> teachers = new LinkedHashSet<>();
+    private Set<Teacher> teachers = new HashSet<>();
 }

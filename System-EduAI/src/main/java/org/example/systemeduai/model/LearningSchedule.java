@@ -7,6 +7,7 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.sql.Date;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -26,5 +27,5 @@ public class LearningSchedule {
 
     @JsonBackReference
     @ManyToMany(mappedBy = "learningSchedules")
-    private Set<Classroom> classrooms = new LinkedHashSet<>();
+    private Set<Classroom> classrooms = new HashSet<>();
 }

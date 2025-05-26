@@ -6,7 +6,6 @@ import org.example.systemeduai.security.userprinciple.UserDetailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -52,9 +51,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.csrf()
                 .disable()
                 .authorizeRequests()
-                .antMatchers("/api/v1/public/**", "/**")
+                .antMatchers("/api/v1/public/**")
                 .permitAll()
                 .antMatchers("/api/v1/student/**").hasAnyRole("ADMIN", "STUDENT")
+                .antMatchers("/api/v1/nutrition/**",
+                        "/api/v1/health-records/**",
+                        "/api/v1/growth-records/**",
+                        "/api/v1/schedules/**",
+                        "/api/v1/activities/**",
+                        "/api/v1/albums/**",
+                        "/api/v1/chat/**").hasAnyRole("ADMIN", "STUDENT", "TEACHER")
+                .antMatchers("/api/v1/teacher/**").hasAnyRole("ADMIN", "TEACHER")
+                .antMatchers("/api/v1/admin/**").hasRole("ADMIN")
                 .anyRequest()
                 .authenticated()
                 .and()

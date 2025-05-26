@@ -14,6 +14,8 @@ import java.util.Optional;
 @Transactional
 public interface IAccountRepository extends JpaRepository<Account, Integer> {
 
+    Optional<Account> findByUsername(String username);
+
     @Query(value = "select account_id, username, encrypt_password, email, is_enable " +
             "from account " +
             "where username = :username and is_enable = true", nativeQuery = true)

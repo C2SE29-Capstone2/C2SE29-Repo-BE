@@ -22,7 +22,7 @@ public class ContactBook {
     private Double weight;
     private String allergies;
     private Integer totalAbsences;
-    private String goodBehaviorCertificates;
+    private String rating;
     private String comment;
 
     @OneToOne(cascade = CascadeType.ALL)

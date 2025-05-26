@@ -1,4 +1,11 @@
 package org.example.systemeduai.service;
 
+import org.example.systemeduai.model.Classroom;
+
+import java.util.Optional;
+
 public interface IClassroomService {
+    Optional<Classroom> getClassroomById(Integer classId);
+
+    boolean existsByClassroomId(Integer classId);
 }

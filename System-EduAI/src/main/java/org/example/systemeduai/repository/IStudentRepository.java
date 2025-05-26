@@ -28,5 +28,9 @@ public interface IStudentRepository extends JpaRepository<Student, Integer> {
             "WHERE a.is_enable = true AND a.username = :username", nativeQuery = true)
     Optional<Tuple> findUserDetailByUsername(@Param("username") String username);
 
-
+    @Query(value = "SELECT s.* FROM student s " +
+            "INNER JOIN parent p ON s.student_id = p.student_id " +
+            "WHERE p.parent_id = :parentId",
+            nativeQuery = true)
+    Student findByParentParentId(@Param("parentId") Integer parentId);
 }

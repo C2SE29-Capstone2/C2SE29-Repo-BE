@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.sql.Date;
+import java.time.LocalDate;
 
 @Setter
 @Getter
@@ -15,7 +15,7 @@ public class HealthRecord {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer healthRecordId;
-    private Date vaccinationSchedule;
+    private LocalDate vaccinationSchedule;
     private String medicalHistory;
     private String periodicCheck;
 

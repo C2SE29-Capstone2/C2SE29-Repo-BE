@@ -35,7 +35,7 @@ public class StudentController {
         return new ResponseEntity<>(studentUserDetailDto, HttpStatus.OK);
     }
 
-    @PutMapping("/student/detail")
+    @PutMapping("/student/update")
     @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<StudentUserDetailDto> updateStudentDetails(@Valid @RequestBody StudentUpdateDto studentUpdateDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

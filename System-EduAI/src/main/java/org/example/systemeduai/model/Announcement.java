@@ -6,6 +6,7 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.sql.Date;
+import java.time.LocalDate;
 
 @Setter
 @Getter
@@ -17,7 +18,7 @@ public class Announcement {
     private Integer announcementId;
     private String title;
     private String content;
-    private Date sentDate;
+    private LocalDate sentDate;
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "teacher_id")

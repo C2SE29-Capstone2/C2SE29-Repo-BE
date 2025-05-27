@@ -60,7 +60,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/api/v1/schedules/**",
                         "/api/v1/activities/**",
                         "/api/v1/albums/**",
-                        "/api/v1/chat/**").hasAnyRole("ADMIN", "STUDENT", "TEACHER")
+                        "/api/v1/chat/**",
+                        "/api/v1/classrooms/**",
+                        "/api/v1/children/**",
+                        "api/v1/attendance/**").hasAnyRole("ADMIN", "STUDENT", "TEACHER")
                 .antMatchers("/api/v1/teacher/**").hasAnyRole("ADMIN", "TEACHER")
                 .antMatchers("/api/v1/admin/**").hasRole("ADMIN")
                 .anyRequest()

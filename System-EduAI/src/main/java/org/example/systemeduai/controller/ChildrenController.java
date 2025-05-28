@@ -15,7 +15,7 @@ public class ChildrenController {
     @Autowired
     private IChildrenService childrenService;
 
-    @PostMapping
+    @PostMapping("/")
     public ResponseEntity<?> addChild(@RequestBody Map<String, Object> request) {
         try {
             Integer classId = (Integer) request.get("classId");

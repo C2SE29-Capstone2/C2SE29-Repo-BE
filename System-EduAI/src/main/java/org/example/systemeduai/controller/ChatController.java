@@ -1,7 +1,9 @@
 package org.example.systemeduai.controller;
 
 import org.example.systemeduai.dto.chat.ChatMessageDTO;
+import org.example.systemeduai.dto.chat.ClassroomMembersMessageDTO;
 import org.example.systemeduai.service.IChatMessageService;
+import org.example.systemeduai.service.IClassroomService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -17,6 +19,16 @@ public class ChatController {
 
     @Autowired
     private IChatMessageService chatMessageService;
+
+    @Autowired
+    private IClassroomService classroomService;
+
+    @GetMapping("/members/{classroomId}")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    public ResponseEntity<ClassroomMembersMessageDTO> getClassroomMembers(@PathVariable Integer classroomId) {
+        ClassroomMembersMessageDTO members = classroomService.getClassroomMembers(classroomId);
+        return ResponseEntity.ok(members);
+    }
 
     @PostMapping("/send")
     @PreAuthorize("hasAnyRole('STUDENT', 'TEACHER')")

@@ -1,14 +1,20 @@
 package org.example.systemeduai.service.impl;
 
+import org.example.systemeduai.dto.attendance.ClassroomAttendanceSummaryDTO;
+import org.example.systemeduai.dto.attendance.StudentAttendanceDTO;
 import org.example.systemeduai.model.Attendance;
+import org.example.systemeduai.model.Classroom;
+import org.example.systemeduai.model.Student;
 import org.example.systemeduai.repository.IAttendanceRepository;
 import org.example.systemeduai.repository.IClassroomRepository;
+import org.example.systemeduai.repository.IStudentRepository;
 import org.example.systemeduai.service.IAttendanceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -22,70 +28,81 @@ public class AttendanceServiceImpl implements IAttendanceService {
     @Autowired
     private IClassroomRepository classroomRepository;
 
+    @Autowired
+    private IStudentRepository studentRepository;
+
     @Override
-    public Map<String, Object> recordAttendance(Integer classId, String childName, String checkInTime, String checkOutTime, String date) {
-        if (!classroomRepository.existsByClassroomId(classId)) {
-            throw new IllegalArgumentException("Classroom with ID " + classId + " does not exist");
+    public List<ClassroomAttendanceSummaryDTO> getClassroomAttendanceSummary(LocalDate date) {
+        List<Classroom> classrooms = classroomRepository.findAll();
+        List<ClassroomAttendanceSummaryDTO> summaries = new ArrayList<>();
+
+        for (Classroom classroom : classrooms) {
+            List<Student> students = studentRepository.findAll().stream()
+                    .filter(student -> student.getClassroom() != null && student.getClassroom().getClassroomId().equals(classroom.getClassroomId()))
+                    .collect(Collectors.toList());
+
+            List<Attendance> attendances = attendanceRepository.findAll().stream()
+                    .filter(att -> att.getClassroom().getClassroomId().equals(classroom.getClassroomId()) && att.getDate().equals(date))
+                    .collect(Collectors.toList());
+
+            int totalStudents = students.size();
+            int presentStudents = (int) attendances.stream().filter(att -> att.getCheckInTime() != null).count();
+            int absentStudents = totalStudents - presentStudents;
+
+            ClassroomAttendanceSummaryDTO summary = new ClassroomAttendanceSummaryDTO();
+            summary.setClassroomId(classroom.getClassroomId());
+            summary.setClassroomName(classroom.getClassroomName());
+            summary.setClassroomType(classroom.getClassroomType().toString());
+            summary.setTotalStudents(totalStudents);
+            summary.setPresentStudents(presentStudents);
+            summary.setAbsentStudents(absentStudents);
+
+            summaries.add(summary);
         }
 
-        LocalDate localDate = LocalDate.parse(date);
-        Attendance existing = attendanceRepository.findByClassroomClassroomIdAndChildNameAndDate(classId, childName, localDate);
-
-        if (existing != null) {
-            if (checkInTime != null && existing.getCheckInTime() != null) {
-                return Map.of("status", "already_checked_in", "time", existing.getCheckInTime().toString());
-            } else if (checkOutTime != null && existing.getCheckOutTime() != null) {
-                return Map.of("status", "already_checked_out", "time", existing.getCheckOutTime().toString());
-            }
-        } else {
-            existing = new Attendance();
-            existing.setChildName(childName);
-            existing.setDate(localDate);
-            existing.setClassroom(classroomRepository.findById(classId).orElse(null));
-        }
-
-        if (checkInTime != null) {
-            existing.setCheckInTime(LocalDateTime.parse(checkInTime));
-        } else if (checkOutTime != null) {
-            existing.setCheckOutTime(LocalDateTime.parse(checkOutTime));
-        }
-
-        attendanceRepository.save(existing);
-        String status = checkInTime != null ? "check_in" : "check_out";
-        String time = checkInTime != null ? checkInTime : checkOutTime;
-        return Map.of("status", status, "time", time);
+        return summaries;
     }
 
     @Override
-    public Map<String, Object> getAttendanceByClassId(Integer classId, String date) {
-        if (!classroomRepository.existsByClassroomId(classId)) {
-            throw new IllegalArgumentException("Classroom with ID " + classId + " does not exist");
-        }
+    public List<StudentAttendanceDTO> getStudentAttendanceByClassroom(Integer classroomId, LocalDate date) {
+        Classroom classroom = classroomRepository.findById(classroomId)
+                .orElseThrow(() -> new RuntimeException("Classroom not found"));
 
-        List<Attendance> attendanceRecords;
-        if (date != null) {
-            LocalDate localDate;
-            try {
-                localDate = LocalDate.parse(date);
-            } catch (Exception e) {
-                throw new IllegalArgumentException("Invalid date format. Use YYYY-MM-DD.");
+        List<Student> students = studentRepository.findAll().stream()
+                .filter(student -> student.getClassroom() != null && student.getClassroom().getClassroomId().equals(classroomId))
+                .collect(Collectors.toList());
+
+        List<Attendance> attendances = attendanceRepository.findAll().stream()
+                .filter(att -> att.getClassroom().getClassroomId().equals(classroomId) && att.getDate().equals(date))
+                .collect(Collectors.toList());
+
+        List<StudentAttendanceDTO> studentAttendanceList = new ArrayList<>();
+
+        for (Student student : students) {
+            StudentAttendanceDTO dto = new StudentAttendanceDTO();
+            dto.setStudentId(student.getStudentId());
+            dto.setStudentName(student.getStudentName());
+            dto.setProfileImage(student.getProfileImage());
+            dto.setClassroomName(classroom.getClassroomName());
+
+            Attendance attendance = attendances.stream()
+                    .filter(att -> att.getChildName().equals(student.getStudentName()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (attendance != null && attendance.getCheckInTime() != null) {
+                dto.setAttendanceStatus("PRESENT");
+                dto.setCheckInTime(attendance.getCheckInTime());
+                dto.setCheckOutTime(attendance.getCheckOutTime());
+            } else {
+                dto.setAttendanceStatus("ABSENT");
+                dto.setCheckInTime(null);
+                dto.setCheckOutTime(null);
             }
-            attendanceRecords = attendanceRepository.findByClassroomClassroomIdAndDate(classId, localDate);
-        } else {
-            attendanceRecords = attendanceRepository.findByClassroomClassroomId(classId);
+
+            studentAttendanceList.add(dto);
         }
 
-        List<Map<String, Object>> records = attendanceRecords.stream().map(record -> Map.of(
-                "child_name", (Object) record.getChildName(),
-                "check_in_time", (Object) (record.getCheckInTime() != null ? record.getCheckInTime().toString() : null),
-                "check_out_time", (Object) (record.getCheckOutTime() != null ? record.getCheckOutTime().toString() : null),
-                "date", (Object) record.getDate().toString()
-        )).collect(Collectors.toList());
-
-        return Map.of(
-                "class_id", classId,
-                "attendance_records", records,
-                "total_records", records.size()
-        );
+        return studentAttendanceList;
     }
 }

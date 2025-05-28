@@ -11,9 +11,4 @@ import java.util.List;
 @Repository
 @Transactional
 public interface IAttendanceRepository extends JpaRepository<Attendance, Integer> {
-    List<Attendance> findByClassroomClassroomId(Integer classroomId);
-
-    Attendance findByClassroomClassroomIdAndChildNameAndDate(Integer classroomId, String childName, LocalDate date);
-
-    List<Attendance> findByClassroomClassroomIdAndDate(Integer classroomId, LocalDate date);
 }

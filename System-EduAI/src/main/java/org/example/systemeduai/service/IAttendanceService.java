@@ -1,9 +1,13 @@
 package org.example.systemeduai.service;
 
-import java.util.Map;
+import org.example.systemeduai.dto.attendance.ClassroomAttendanceSummaryDTO;
+import org.example.systemeduai.dto.attendance.StudentAttendanceDTO;
+
+import java.time.LocalDate;
+import java.util.List;
 
 public interface IAttendanceService {
-    Map<String, Object> recordAttendance(Integer classId, String childName, String checkInTime, String checkOutTime, String date);
+    List<ClassroomAttendanceSummaryDTO> getClassroomAttendanceSummary(LocalDate date);
 
-    Map<String, Object> getAttendanceByClassId(Integer classId, String date);
+    List<StudentAttendanceDTO> getStudentAttendanceByClassroom(Integer classroomId, LocalDate date);
 }

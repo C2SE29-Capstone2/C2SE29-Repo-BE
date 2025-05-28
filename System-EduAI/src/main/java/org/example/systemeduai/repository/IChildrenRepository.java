@@ -10,7 +10,4 @@ import java.util.List;
 @Repository
 @Transactional
 public interface IChildrenRepository extends JpaRepository<Children, Integer> {
-    List<Children> findByClassroomClassroomId(Integer classroomId);
-
-    boolean existsByClassroomClassroomIdAndName(Integer classroomId, String name);
 }

@@ -14,7 +14,7 @@ public class AttendanceController {
     @Autowired
     private IAttendanceService attendanceService;
 
-    @PostMapping
+    @PostMapping("/")
     public ResponseEntity<?> recordAttendance(@RequestBody Map<String, Object> request) {
         try {
             Integer classId = (Integer) request.get("classId");

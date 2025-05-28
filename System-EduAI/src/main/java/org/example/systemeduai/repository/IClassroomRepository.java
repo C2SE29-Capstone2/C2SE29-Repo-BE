@@ -11,4 +11,5 @@ import java.util.List;
 @Repository
 @Transactional
 public interface IClassroomRepository extends JpaRepository<Classroom, Integer> {
+    boolean existsByClassroomId(Integer classroomId);
 }
